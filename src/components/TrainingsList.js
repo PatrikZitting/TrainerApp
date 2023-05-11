@@ -25,8 +25,13 @@ const TrainingsList = () => {
       .then(data => setCustomers(data.content));
   }, []);
 
+  const fetchTrainings = () => {
+    fetch('https://traineeapp.azurewebsites.net/gettrainings')
+      .then(response => response.json())
+      .then(data => setTrainings(data));
+  };
+
   const handleAddTraining = (newTraining) => {
-    // POST request to add a new training
     fetch('https://traineeapp.azurewebsites.net/api/trainings', {
       method: 'POST',
       headers: {
@@ -36,7 +41,6 @@ const TrainingsList = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        // Refetch trainings data after adding a new one
         fetch('https://traineeapp.azurewebsites.net/gettrainings')
           .then(response => response.json())
           .then(data => setTrainings(data));
@@ -45,6 +49,31 @@ const TrainingsList = () => {
       .catch((error) => {
         console.error('Error:', error);
       });
+  };
+
+  const handleDeleteClick = (training) => {
+    console.log(training);
+    const trainingId = training.id;
+    if (window.confirm("Are you sure you want to delete this training?")) {
+      handleDeleteTraining(trainingId);
+    }
+  };
+  
+  const handleDeleteTraining = (id) => {
+    console.log('handleDeleteTraining', id);
+    fetch(`https://traineeapp.azurewebsites.net/api/trainings/${id}`, {
+      method: 'DELETE',
+    })
+    .then(response => {
+      if (response.ok) {
+        fetchTrainings();
+      } else {
+        console.error('Error:', response);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
   };
 
   const handleOpen = () => setOpen(true);
@@ -80,7 +109,18 @@ const TrainingsList = () => {
       filter: true,
       floatingFilter: true,
       valueGetter: params => `${params.data.customer.firstname} ${params.data.customer.lastname}`
-    }
+    },
+    {
+      headerName: 'Actions',
+      field: 'actions',
+      cellRendererFramework: (params) => (
+        <>
+          <Button variant="contained" color="secondary" onClick={() => handleDeleteClick(params.data)}>
+            Delete
+          </Button>
+        </>
+      ),
+    },
   ];
 
   return (

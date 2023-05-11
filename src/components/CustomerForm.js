@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const CustomerForm = ({ onSubmit, initialValues = {}, isEdit = false }) => {
+const CustomerForm = ({ onSubmit, initialValues = {}, isEdit = false, closeForm }) => {
   const [firstName, setFirstName] = useState(initialValues.firstname || '');
   const [lastName, setLastName] = useState(initialValues.lastname || '');
   const [streetAddress, setStreetAddress] = useState(initialValues.streetaddress || '');
@@ -9,9 +9,19 @@ const CustomerForm = ({ onSubmit, initialValues = {}, isEdit = false }) => {
   const [email, setEmail] = useState(initialValues.email || '');
   const [phone, setPhone] = useState(initialValues.phone || '');
 
+  useEffect(() => {
+    setFirstName(initialValues.firstname || '');
+    setLastName(initialValues.lastname || '');
+    setStreetAddress(initialValues.streetaddress || '');
+    setPostcode(initialValues.postcode || '');
+    setCity(initialValues.city || '');
+    setEmail(initialValues.email || '');
+    setPhone(initialValues.phone || '');
+  }, [initialValues]);
+
   const handleSubmit = (event) => {
     event.preventDefault();
-
+  
     const customerData = {
       firstname: firstName,
       lastname: lastName,
@@ -21,8 +31,9 @@ const CustomerForm = ({ onSubmit, initialValues = {}, isEdit = false }) => {
       email,
       phone,
     };
-
+  
     onSubmit(customerData);
+    closeForm && closeForm();
   };
 
   return (

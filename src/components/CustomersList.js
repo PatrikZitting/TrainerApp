@@ -42,7 +42,10 @@ const CustomersList = () => {
   };
 
   const handleEditCustomer = (customerData) => {
-    fetch(`https://traineeapp.azurewebsites.net/api/customers/${selectedCustomer.id}`, {
+    const url = `https://traineeapp.azurewebsites.net/api/customers/${selectedCustomer.id}`;
+    console.log("URL: ", url);
+    console.log("Data: ", customerData);
+    fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -61,8 +64,42 @@ const CustomersList = () => {
       });
   };
 
+  const handleDeleteClick = (customer) => {
+    const customerId = customer.links.find(link => link.rel === 'self').href.split('/').pop();
+    
+    if (window.confirm("Are you sure? This will delete customer and related trainings.")) {
+      handleDeleteCustomer(customerId);
+    }
+  };
+  
+  const handleDeleteCustomer = (id) => {
+    console.log('handleDeleteCustomer', id);
+    fetch(`https://traineeapp.azurewebsites.net/api/customers/${id}`, {
+      method: 'DELETE',
+    })
+    .then(response => {
+      if (response.ok) {
+        fetchCustomers();
+      } else {
+        console.error('Error:', response);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  };
+
   const handleRowSelected = (event) => {
-    setSelectedCustomer(event.node.data);
+    const customerId = event.node.data.links.find(link => link.rel === 'self').href.split('/').pop();
+    setSelectedCustomer({...event.node.data, id: customerId});
+  };
+
+  const handleEditClick = (customerData) => {
+    console.log(customerData);
+    const customerId = customerData.links.find(link => link.rel === 'self').href.split('/').pop();
+    setSelectedCustomer({...customerData, id: customerId});
+    setIsEdit(true);
+    setShowForm(true);
   };
 
   const columns = [
@@ -114,7 +151,21 @@ const CustomersList = () => {
       sortable: true,
       filter: true,
       floatingFilter: true
-    }
+    },
+    {
+      headerName: 'Actions',
+      field: 'actions',
+      cellRendererFramework: (params) => (
+        <>
+          <Button variant="contained" color="primary" onClick={() => handleEditClick(params.data)}>
+            Edit
+          </Button>
+          <Button variant="contained" color="secondary" onClick={() => handleDeleteClick(params.data)}>
+            Delete
+          </Button>
+        </>
+      ),
+    },
   ];
 
   return (
@@ -158,7 +209,9 @@ const CustomersList = () => {
               onSubmit={isEdit ? handleEditCustomer : handleAddCustomer}
               initialValues={isEdit ? selectedCustomer : {}}
               isEdit={isEdit}
+              closeForm={() => setShowForm(false)}
             />
+
             {isEdit && (
               <button onClick={() => setIsEdit(false)}>Cancel Edit</button>
             )}
