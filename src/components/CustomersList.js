@@ -6,6 +6,8 @@ import CustomerForm from './CustomerForm';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Papa from 'papaparse';
+
 
 
 const CustomersList = () => {
@@ -100,6 +102,31 @@ const CustomersList = () => {
     setSelectedCustomer({...customerData, id: customerId});
     setIsEdit(true);
     setShowForm(true);
+  };
+
+  const handleExport = () => {
+    const csv = Papa.unparse(customers.map(customer => ({
+      id: customer.id,
+      firstname: customer.firstname,
+      lastname: customer.lastname,
+      streetaddress: customer.streetaddress,
+      postcode: customer.postcode,
+      city: customer.city,
+      email: customer.email,
+      phone: customer.phone,
+    })));
+  
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "customers.csv");
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const columns = [
@@ -219,6 +246,9 @@ const CustomersList = () => {
           </Box>
         </Modal>
       )}
+      <Button variant="contained" color="secondary" onClick={handleExport}>
+        Export
+      </Button>
     </div>
   );
 };
